@@ -193,7 +193,8 @@ impl HeaderCollection {
     }
 }
 
-fn head<V>(header: &str, value: Option<V>, mutator: |V| -> String) -> String {
+//fn head<V>(header: &str, value: Option<V>, mutator: |V| -> String) -> String {
+fn head<V>(header: &str, value: Option<V>, mutator: fn(&mut V) -> String) -> String {
     match value {
         Some(val) => {
             // Delimit from previous cookie/options

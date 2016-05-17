@@ -11,7 +11,7 @@ use crypto::hmac::Hmac;
 /// The parsed cookie.
 ///
 /// This is the type stored in the alloy.
-#[deriving(Show)]
+#[derive(Show)]
 pub struct Cookie {
     /// True to set/get signed cookies only
     pub signed: bool,

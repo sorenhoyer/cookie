@@ -14,7 +14,7 @@ fn main() {
 }
 
 fn echo_cookies(req: &mut Request, _: &mut Response) -> Status {
-    let cookie = req.alloy.find::<Cookie>().unwrap();
+    let cookie = req.extensions.find::<Cookie>().unwrap();
     for (key, value) in cookie.map.iter() {
         println!("{}:\t{}", *key, *value)
     }

@@ -7,6 +7,7 @@ use serialize::json::{Json, Null};
 use iron::{Request, Response, Middleware, Status, Continue};
 use super::Cookie;
 use crypto::util::fixed_time_eq;
+use regex::Regex;
 
 /// The cookie parsing `Middleware`.
 ///
@@ -15,7 +16,7 @@ use crypto::util::fixed_time_eq;
 /// This middleware should be linked (added to the `Chain`)
 /// before any other middleware using cookies, or the parsed cookie
 /// will not be available to that middleware.
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct CookieParser {
     secret: Option<String>
 }
@@ -71,7 +72,7 @@ impl Middleware for CookieParser {
             },
             None => ()
         }
-        req.alloy.insert(new_cookie);
+        req.extensions.insert(new_cookie);
         Continue
     }
 }
@@ -97,7 +98,8 @@ fn strip_signature((key, val): (String, String), signer: &Cookie) -> Option<(Str
     if val.len() > 2 && val.as_slice().slice(0, 2) == "s:" {
         if !signer.signed { return None }
         // Extract the signature (in hex), appended onto the cookie after `.`
-        return regex!(r"\.[^\.]*$").find(val.as_slice())
+        let re = Regex::new(r"\.[^\.]*$").unwrap();
+        return re.is_match(val.as_slice())
             // If it was signed by us, clear the signature
             .and_then(|(beg, end)| {
                 signer.sign(&val.as_slice().slice(2, beg).to_string())

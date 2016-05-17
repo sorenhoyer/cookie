@@ -15,7 +15,7 @@ fn count_views(req: &mut Request, res: &mut Response) -> Status {
     // Only hold on to cookies for ten seconds
     let options = HeaderCollection::aged(10);
 
-    match req.alloy.find::<Cookie>() {
+    match req.extensions.find::<Cookie>() {
         Some(cookie) => {
             // Find the "count" cookie
             debug!("COOKIE struct: {}", cookie)
