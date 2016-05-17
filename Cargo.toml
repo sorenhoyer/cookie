@@ -13,11 +13,15 @@ path = "src/lib.rs"
 [dependencies]
 iron = "*"
 rust-crypto = "*"
-url = "*"
 iron-test = "*"
 regex = "*"
 hyper = "*"
+serde = "*"
+serde_json = "*"
 
 [dependencies.time]
 git = "https://github.com/rust-lang/time"
 
+[dependencies.url]
+git = "https://github.com/servo/rust-url"
+features = ["query_encoding"]

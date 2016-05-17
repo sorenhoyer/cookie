@@ -1,8 +1,9 @@
 //! Parsing functionality - get cookie data
 
-use std::collections::hashmap::HashMap;
-use serialize::json::{Json, Null};
-use serialize::hex::ToHex;
+use std::collections::HashMap;
+use serde_json;
+// use serialize::json::{Json, Null};
+// use serialize::hex::ToHex;
 use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 use crypto::mac::Mac;
@@ -10,7 +11,7 @@ use crypto::hmac::Hmac;
 
 /// The parsed cookie.
 ///
-/// This is the type stored in the alloy.
+/// This is the type stored in the extensions.
 #[derive(Show)]
 pub struct Cookie {
     /// True to set/get signed cookies only
