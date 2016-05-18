@@ -47,7 +47,8 @@ impl BeforeMiddleware for CookieParser {
         // Initialize a cookie. This will store parsed cookies and generate signatures.
         let mut new_cookie = Cookie::new(self.secret.clone());
 
-        match req.extensions.find_mut(&"Cookie".to_string()) {
+        //match req.headers.extensions.find_mut(&"Cookie".to_string()) {
+        match req.extensions.get_mut::<Cookie>() {
             Some(cookies) => {
                 // Initialize an empty json object.
                 //let mut new_json = serde_json::Object(TreeMap::new());

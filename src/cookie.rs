@@ -1,6 +1,6 @@
 //! Parsing functionality - get cookie data
 
-use std::collections::HashMap;
+use std::collections::{HashMap, BTreeMap};
 use serde_json;
 // use serialize::json::{Json, Null};
 // use serialize::hex::ToHex;
@@ -23,7 +23,7 @@ pub struct Cookie {
     ///
     /// JSON stored under key `myJson` will be available
     /// under `cookie.json.find(&"myJson".to_string())`.
-    pub json: Json
+    pub json: BTreeMap<String, serde_json::Value>
 }
 
 impl Cookie {
@@ -33,7 +33,7 @@ impl Cookie {
             signed: secret.is_some(),
             secret: secret,
             map: HashMap::new(),
-            json: Null
+            json: BTreeMap::new()
         }
     }
 
