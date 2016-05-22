@@ -9,10 +9,15 @@ use crypto::sha2::Sha256;
 use crypto::mac::Mac;
 use crypto::hmac::Hmac;
 
+use iron::headers::{Header, HeaderFormat};
+use iron::error::HttpError;
+use std::fmt::{Formatter, Error};
+use iron::typemap;
+
 /// The parsed cookie.
 ///
 /// This is the type stored in the extensions.
-#[derive(Show)]
+#[derive(Show, Clone, Debug)]
 pub struct Cookie {
     /// True to set/get signed cookies only
     pub signed: bool,
@@ -25,6 +30,8 @@ pub struct Cookie {
     /// under `cookie.json.find(&"myJson".to_string())`.
     pub json: BTreeMap<String, serde_json::Value>
 }
+
+impl typemap::Key for Cookie { type Value = Cookie; }
 
 impl Cookie {
     /// Create a new cookie
@@ -41,16 +48,34 @@ impl Cookie {
     ///
     /// Signatures will be authenticated with HMAC SHA-256.
     pub fn sign(&self, value: &String) -> Option<String> {
-        match self.secret {
-            Some(ref secret) => {
-                let mut hmac = Hmac::new(Sha256::new(), secret.as_bytes());
-                hmac.input(value.as_bytes());
+        // match self.secret {
+        //     Some(ref secret) => {
+        //         let mut hmac = Hmac::new(Sha256::new(), secret.as_bytes());
+        //         hmac.input(value.as_bytes());
 
-                let hash: &mut [u8] = [0, ..32];
-                hmac.raw_result(hash);
-                Some(hash.as_slice().to_hex())
-            },
-            None             => None
-        }
+        //         let hash: &mut [u8] = [0, ..32];
+        //         hmac.raw_result(hash);
+        //         Some(hash.as_slice().to_hex())
+        //     },
+        //     None             => None
+        // }
+        None
+    }
+}
+
+
+impl Header for Cookie {
+    fn header_name() -> &'static str {
+        &"Cookie"
+    }
+
+    fn parse_header(raw: &[Vec<u8>]) -> Result<Self, HttpError>{
+        Ok(Cookie::new(None))
+    }
+}
+
+impl HeaderFormat for Cookie {
+    fn fmt_header(&self, f: &mut Formatter) -> Result<(), Error>{
+        Ok(())
     }
 }

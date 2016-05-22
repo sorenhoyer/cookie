@@ -10,6 +10,30 @@ use super::Cookie;
 use time::Tm;
 use std::collections::BTreeMap;
 
+use iron::headers::{Header, HeaderFormat};
+use iron::error::HttpError;
+use std::fmt::{Formatter, Error};
+
+
+use hyper::header::Headers;
+header! { (SetCookieRequestHeader, "Set-Cookie") => [String] }
+
+impl Header for SetCookieRequestHeader {
+    fn header_name() -> &'static str {
+        &"SetCookieRequestHeader"
+    }
+
+    fn parse_header(raw: &[Vec<u8>]) -> Result<Self, HttpError>{
+        Ok(SetCookieRequestHeader("test".to_string()))
+    }
+}
+
+impl HeaderFormat for SetCookieRequestHeader {
+    fn fmt_header(&self, f: &mut Formatter) -> Result<(), Error>{
+        Ok(())
+    }
+}
+
 /// Set cookies.
 ///
 /// This trait is added as a mix-in to `Response`, allowing
@@ -45,24 +69,25 @@ impl SetCookie for Response {
                   signer: &Cookie,
                   (key, value): (String, String),
                   options: HeaderCollection) {
-
-        self.headers.extensions.insert("Set-Cookie".to_String(),
-            match signer.sign(&value) {
-                Some(signature) => {
-                    utf8_percent_encode(key.as_slice(), DEFAULT_ENCODE_SET )
-                        .append("=")
-                        .append("s:")
-                        .append(utf8_percent_encode(value.as_slice(), DEFAULT_ENCODE_SET ).as_slice())
-                        .append(".")
-                        .append(signature.as_slice())
-                },
-                None            => {
-                    utf8_percent_encode(key.as_slice(), DEFAULT_ENCODE_SET )
-                        .append("=")
-                        .append(utf8_percent_encode(value.as_slice(), DEFAULT_ENCODE_SET ).as_slice())
-                }
-            }.append(options.to_cookie_av().as_slice())
-        );
+        //self.headers.extensions.insert("Set-Cookie".to_String(),
+        self.headers.set(SetCookieRequestHeader(
+            "test".to_string()
+            // match signer.sign(&value) {
+            //     Some(signature) => {
+            //         utf8_percent_encode(key.as_slice(), DEFAULT_ENCODE_SET )
+            //             .append("=")
+            //             .append("s:")
+            //             .append(utf8_percent_encode(value.as_slice(), DEFAULT_ENCODE_SET ).as_slice())
+            //             .append(".")
+            //             .append(signature.as_slice())
+            //     },
+            //     None            => {
+            //         utf8_percent_encode(key.as_slice(), DEFAULT_ENCODE_SET )
+            //             .append("=")
+            //             .append(utf8_percent_encode(value.as_slice(), DEFAULT_ENCODE_SET ).as_slice())
+            //     }
+            // }.append(options.to_cookie_av().as_slice())
+        ));
     }
 
     fn set_json_cookie(&mut self,
@@ -70,7 +95,7 @@ impl SetCookie for Response {
                        (key, value): (String, BTreeMap<String, serde_json::Value>),
                        options: HeaderCollection) {
         //let json = "j:".to_String().append(Stringify_json(&value).as_slice());
-        let json = "j:".to_String().append(serde_json::to_string(&value).unwrap()/*.as_slice()*/);
+        let json = "{}".to_string(); //"j:".to_String().append(serde_json::to_string(&value).unwrap()/*.as_slice()*/);
         
         self.set_cookie(signer, (key, json), options)
     }
@@ -136,22 +161,23 @@ pub struct HeaderCollection {
 impl HeaderCollection {
     #[doc(hidden)]
     pub fn to_cookie_av(self) -> String {
-        let mut options = String::new()
-            .append(head("Expires", self.expires, |v| v.rfc822()).as_slice())
-            .append(head("Max-Age", self.max_age, |v| v.to_String()).as_slice())
-            .append(head("Domain", self.domain, |v| v).as_slice())
-            .append(head("Path", self.path, |v| v).as_slice());
-        if self.secure { options.push_str("; Secure"); }
-        if self.http_only { options.push_str("; Http-Only"); }
-        match self.extensions {
-            Some(map) => {
-                for (header, value) in map.iter() {
-                    options.push_str(extension(header, value.clone()).as_slice());
-                }
-            },
-            None      => ()
-        }
-        options
+        // let mut options = String::new()
+        //     .append(head("Expires", self.expires, |v| v.rfc822()).as_slice())
+        //     .append(head("Max-Age", self.max_age, |v| v.to_String()).as_slice())
+        //     .append(head("Domain", self.domain, |v| v).as_slice())
+        //     .append(head("Path", self.path, |v| v).as_slice());
+        // if self.secure { options.push_str("; Secure"); }
+        // if self.http_only { options.push_str("; Http-Only"); }
+        // match self.extensions {
+        //     Some(map) => {
+        //         for (header, value) in map.iter() {
+        //             options.push_str(extension(header, value.clone()).as_slice());
+        //         }
+        //     },
+        //     None      => ()
+        // }
+        // options
+        "test".to_string()
     }
 }
 
@@ -200,110 +226,24 @@ impl HeaderCollection {
 
 //fn head<V>(header: &str, value: Option<V>, mutator: |V| -> String) -> String {
 fn head<V>(header: &str, value: Option<V>, mutator: fn(&mut V) -> String) -> String {
-    match value {
-        Some(val) => {
-            // Delimit from previous cookie/options
-            "; ".to_String()
-            // Add the header
-                .append(header).append("=")
-            // Add the mutated value
-                .append(mutator(val).as_slice())
-        },
-        None      => String::new()
-    }
+    // match value {
+    //     Some(val) => {
+    //         // Delimit from previous cookie/options
+    //         "; ".to_string()
+    //         // Add the header
+    //             .append(header).append("=")
+    //         // Add the mutated value
+    //             .append(mutator(val).as_slice())
+    //     },
+    //     None      => String::new()
+    // }
+    "test".to_string()
 }
 
 fn extension(header: &String, value: Option<String>) -> String {
-    match value {
-        Some(val) => head(header.as_slice(), Some(val), |v| v),
-        None      => "; ".to_String().append(header.as_slice())
-    }
+    // match value {
+    //     Some(val) => head(header.as_slice(), Some(val), |v| v),
+    //     None      => "; ".to_String().append(header.as_slice())
+    // }
+    "test".to_string()
 }
-
-// #[cfg(test)]
-// mod test {
-//     use std::collections::TreeMap;
-//     use super::*;
-//     use super::super::cookie::*;
-//     use serialize::json::{Json, Object, String};
-//     use test::mock::response;
-
-//     // Set a cookie and return its set value
-//     fn get_cookie<'a>(headers: HeaderCollection, secret: Option<String>, key: &str, value: &str) -> String {
-//         let mut res = response::new();
-//         let signer = Cookie::new(secret);
-//         let cookie = (key.to_String(), value.to_String());
-//         res.set_cookie(&signer, cookie, headers);
-//         res.headers.extensions.find(&"Set-Cookie".to_String()).unwrap().clone()
-//     }
-
-//     // Set a JSON cookie and return its set value
-//     fn get_json_cookie<'a>(headers: HeaderCollection, secret: Option<String>, key: &str, value: Json) -> String {
-//         let mut res = response::new();
-//         let signer = Cookie::new(secret);
-//         let cookie = (key.to_String(), value);
-//         res.set_json_cookie(&signer, cookie, headers);
-//         res.headers.extensions.find(&"Set-Cookie".to_String()).unwrap().clone()
-//     }
-
-
-//     #[test]
-//     fn check_Stringify_json() {
-//         let mut obj_map = TreeMap::new();
-//         obj_map.insert("foo".to_String(), String("bar".to_String()));
-//         let json = Object(obj_map);
-//         assert_eq!("{\"foo\":\"bar\"}".to_String(), super::Stringify_json(&json)) // FIXME
-//     }
-
-//     #[test]
-//     fn check_cookie() {
-//         let headers = HeaderCollection::empty();
-//         assert_eq!(get_cookie(headers, None, "thing", "thing"), "thing=thing".to_String());
-//     }
-
-//     #[test]
-//     fn check_escaping() {
-//         let headers = HeaderCollection::empty();
-//         assert_eq!(get_cookie(headers, None, "~`!@#$%^&*()_+-={}|[]\\:\";'<>?,./'", "~`!@#$%^&*()_+-={}|[]\\:\";'<>?,./'"),
-//             // Url component encoding should escape these characters
-//             "~%60%21%40%23%24%25%5E%26*%28%29_%2B-%3D%7B%7D%7C%5B%5D%5C%3A%22%3B%27%3C%3E%3F%2C.%2F%27=\
-//              ~%60%21%40%23%24%25%5E%26*%28%29_%2B-%3D%7B%7D%7C%5B%5D%5C%3A%22%3B%27%3C%3E%3F%2C.%2F%27".to_String());
-//     }
-
-//     #[test]
-//     fn check_headers() {
-//         // Mock the cookie headers
-//         let mut headers = HeaderCollection {
-//             expires:    None,
-//             max_age:    Some(42),
-//             domain:     Some("example.com".to_String()),
-//             path:       Some("/a/path".to_String()),
-//             secure:     true,
-//             http_only:  true,
-//             extensions: Some(TreeMap::<String, Option<String>>::new())
-//         };
-//         headers.extensions.as_mut().unwrap().insert("foo".to_String(), Some("bar".to_String()));
-//         headers.extensions.as_mut().unwrap().insert("@zzmp".to_String(), None);
-//         assert_eq!(get_cookie(headers, None, "thing", "thing"),
-//             "thing=thing; Max-Age=42; Domain=example.com; Path=/a/path; Secure; Http-Only; @zzmp; foo=bar".to_String());
-//     }
-
-//     #[test]
-//     fn check_signature() {
-//         let headers = HeaderCollection::empty();
-//         assert_eq!(get_cookie(headers, Some("@zzmp".to_String()), "thing", "thung"),
-//             // HMAC-SHA256 of key "@zzmp" and message "thung"
-//             "thing=s:thung.e99abddcf60cad18f8d4b993efae53e81410cf2b2855af0309f1ae46fa527fbb".to_String());
-//     }
-
-//     #[test]
-//     fn check_json() {
-//         let headers = HeaderCollection::empty();
-//         let mut obj_map = TreeMap::new();
-//         obj_map.insert("foo".to_String(), String("bar".to_String()));
-//         let json = Object(obj_map);
-//         assert_eq!(get_json_cookie(headers, None, "thing", json),
-//             // Url component encoded JSON: {"foo":"bar"}
-//             "thing=j%3A%7B%22foo%22%3A%22bar%22%7D".to_String());
-//     }
-// }
